@@ -5,6 +5,7 @@ import requests
 import telegram
 import logging
 import time
+from exceptions import APIErrosrs
 
 
 load_dotenv()
@@ -37,16 +38,10 @@ logger = logging.getLogger(__name__)
 error_sent_messages = []
 
 
-class APIErrosrs(Exception):
-    """Ошибка при работе API."""
-
-    pass
-
-
 def check_tokens():
     """Проверяет переменные окружения."""
     vars = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
-    return None not in vars
+    return all(vars)
 
 
 def send_message(bot, message):
@@ -69,7 +64,8 @@ def get_api_answer(current_timestamp):
         raise APIErrosrs(message)
     try:
         if response.status_code != HTTPStatus.OK:
-            message = 'От эндотипа нет ответа'
+            message = f'status code: {response.status_code},'
+            f'error:{response.json}'
             raise Exception(message)
     except Exception:
         message = 'API ведет себя некорректно'
@@ -94,16 +90,16 @@ def check_response(response):
 
 def parse_status(homework):
     """Формирует сообщение с обновленным статусом для отправки."""
-    keys = ['status', 'homework_name']
-    for key in keys:
-        if key not in homework:
-            message = f'Ключа {key} нет в ответе API'
-            raise KeyError(message)
-    homework_status = homework['status']
+    homework_name = homework.get('homework_name')
+    homework_status = homework.get('status')
+
+    if not (homework_status and homework_name):
+        raise KeyError(
+            'В ответе отсутствуют ключи `homework_name` и/или `status`'
+        )
     if homework_status not in HOMEWORK_VERDICTS:
         message = 'Неизвестный статус домашней работы'
         raise KeyError(message)
-    homework_name = homework['homework_name']
     verdict = HOMEWORK_VERDICTS[homework_status]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
