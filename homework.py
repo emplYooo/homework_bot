@@ -82,9 +82,12 @@ def check_response(response):
     if not isinstance(response, dict):
         message = 'Ответ API не словарь'
         raise TypeError(message)
-    if ['homeworks'][0] not in response:
+    if 'homeworks' not in response:
         message = 'В ответе API нет домашней работы'
         raise IndexError(message)
+    if 'homeworks' in response and not isinstance(response['homeworks'], list):
+        message = 'Ответ под ключом "homeworks" не список'
+        raise TypeError(message)
     homework = response.get('homeworks')[0]
     return homework
 
