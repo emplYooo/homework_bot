@@ -5,7 +5,7 @@ import requests
 import telegram
 import logging
 import time
-from exceptions import APIErrosrs
+from exceptions import APIErrors
 
 
 load_dotenv()
@@ -61,15 +61,14 @@ def get_api_answer(current_timestamp):
         response = requests.get(ENDPOINT, headers=HEADERS, params=params)
     except Exception:
         message = 'API ведет себя незапланированно'
-        raise APIErrosrs(message)
+        raise APIErrors(message)
     try:
         if response.status_code != HTTPStatus.OK:
             message = f'status code: {response.status_code},'
             f'error:{response.json}'
             raise Exception(message)
     except Exception:
-        message = 'API ведет себя некорректно'
-        raise APIErrosrs(message)
+        raise APIErrors('API ведет себя некорректно')
     return response.json()
 
 
